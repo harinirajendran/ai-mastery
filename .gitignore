@@ -1,0 +1,61 @@
+# -----------------
+# Python (hello-ai)
+# -----------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+*.log
+
+# Virtual env
+hello-ai/venv/
+hello-ai/.venv/
+hello-ai/.env
+hello-ai/.env.*
+hello-ai/venv.bak/
+
+# -----------------
+# Node / Next.js (hello-ai-ui)
+# -----------------
+hello-ai-ui/node_modules/
+hello-ai-ui/.next/
+hello-ai-ui/out/
+hello-ai-ui/dist/
+hello-ai-ui/.env
+hello-ai-ui/.env.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.tsbuildinfo
+
+# -----------------
+# OS / Editor
+# -----------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -----------------
+# Docker / Misc
+# -----------------
+*.pid
+*.seed
+*.cover
+*.pyc
+*.pkl
+*.sqlite3
+*.db
+*.tar
+*.gz
+*.zip
+
