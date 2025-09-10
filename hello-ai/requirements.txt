@@ -1,0 +1,6 @@
+fastapi>=0.116.0
+uvicorn[standard]>=0.35.0
+openai>=1.106.0
+python-dotenv>=1.1.0
+python-json-logger>=3.3.0
+pydantic>=2.11.0
