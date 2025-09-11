@@ -89,7 +89,7 @@ def call_openai_with_retry(messages, model="gpt-4o-mini", timeout=20, max_retrie
         time.sleep(0.8 * (2 ** attempt))
     raise last_err or RuntimeError("Unknown error calling OpenAI")
 
-@app.get("/chat", response_model=ChatResponse)
+@app.get("/api/chat", response_model=ChatResponse)
 def chat(prompt: str = Query(..., min_length=1, max_length=2000)):
     start = time.time()
     try:
@@ -120,7 +120,7 @@ def chat(prompt: str = Query(..., min_length=1, max_length=2000)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Unexpected server error: " + str(e))
 
-@app.get("/chat/stream")
+@app.get("/api/chat/stream")
 def chat_stream(prompt: str = Query(..., min_length=1)):
     def gen():
         stream = client.chat.completions.create(
