@@ -1,0 +1,6 @@
+# db/base.py
+from typing import List, Tuple, Protocol
+
+class VectorDB(Protocol):
+    def ingest(self, text: str) -> None: ...
+    def query(self, q: str, top_k: int = 3) -> List[Tuple[str, float]]: ...

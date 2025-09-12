@@ -8,13 +8,17 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from fastapi import HTTPException, Query
 from openai import APIConnectionError, APITimeoutError, RateLimitError, BadRequestError
+from db.pgvector_db import PGVectorDB
 from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse
+
 from fastapi.middleware.cors import CORSMiddleware
 # Load environment variables from .env file
 load_dotenv()
 
 app = FastAPI(title="hello-ai", version="0.1.0")
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+db = PGVectorDB()
 
 # ----- logging setup -----
 logger = logging.getLogger("app")
@@ -58,6 +62,38 @@ def ping() -> dict:
 @app.get("/")
 def root() -> dict:
     return {"message": "hello-ai is up"}
+
+class IngestRequest(BaseModel):
+    text: str
+
+@app.post("/api/ingest")
+def ingest_doc(req: IngestRequest):
+    db.ingest(req.text)
+    return {"status": "ok", "message": "Document ingested"}
+
+@app.get("/api/qa")
+def qa(query: str = Query(..., min_length=2)):
+    # 1. Retrieve from DB
+    rows = db.query(query, top_k=3)
+    context = "\n".join([r[0] for r in rows])
+
+    # 2. Ask GPT
+    start = time.time()
+    resp = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Answer based only on context"},
+            {"role": "user", "content": f"Context:\n{context}\n\nQ: {query}"}
+        ]
+    )
+    answer = resp.choices[0].message.content
+
+    return JSONResponse({
+        "query": query,
+        "answer": answer,
+        "context_used": rows,
+        "latency_ms": int((time.time() - start) * 1000)
+    })
 
 
 # ---- response schema ----

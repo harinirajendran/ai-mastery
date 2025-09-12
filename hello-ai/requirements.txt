@@ -4,3 +4,6 @@ openai>=1.106.0
 python-dotenv>=1.1.0
 python-json-logger>=3.3.0
 pydantic>=2.11.0
+psycopg2-binary
+sqlalchemy
+tiktoken
