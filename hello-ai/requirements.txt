@@ -11,8 +11,8 @@ langchain
 langgraph
 PyPDF2
 python-multipart
-torch
-torchvision
-torchaudio
-transformers
+torch==2.3.0+cpu
+torchvision==0.18.0+cpu
+torchaudio==2.3.0+cpu
+transformers==4.44.0
 accelerate
