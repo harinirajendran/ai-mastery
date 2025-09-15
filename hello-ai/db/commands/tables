@@ -1,0 +1,22 @@
+-- Enable needed extensions
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm; -- for similarity() if you use hybrid_query
+
+-- Create the documents table
+CREATE TABLE IF NOT EXISTS documents (
+  id BIGSERIAL PRIMARY KEY,
+  content TEXT NOT NULL,
+  embedding VECTOR(1536),
+  tsv tsvector GENERATED ALWAYS AS (to_tsvector('english', content)) STORED
+);
+
+-- Add GIN index for full-text search
+CREATE INDEX IF NOT EXISTS idx_documents_tsv
+ON documents
+USING gin(tsv);
+
+-- Optional: add IVFFLAT index for embeddings (for faster semantic search)
+CREATE INDEX IF NOT EXISTS idx_documents_embedding
+ON documents
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
