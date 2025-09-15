@@ -27,9 +27,10 @@ export async function GET(req: Request) {
       status: res.status,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err) {
+    const e = err as Error;
     return new Response(
-      JSON.stringify({ error: "Failed to reach backend", detail: err.message }),
+      JSON.stringify({ error: "Failed to reach backend", detail: e.message }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

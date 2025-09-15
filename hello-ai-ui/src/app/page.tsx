@@ -36,8 +36,9 @@ export default function Home() {
         if (j.answer) setAns(j.answer);
         if (j.context_used) setSources(j.context_used);
       }
-    } catch (err: any) {
-      setError("❌ Error: " + err.message);
+    } catch (err) {
+      const e = err as Error;
+      setError("❌ Error: " + e.message);
     } finally {
       setStreaming(false);
     }
