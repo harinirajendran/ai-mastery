@@ -4,8 +4,6 @@ import psycopg2 as psycopg2
 from typing import List, Tuple
 from openai import OpenAI
 
-
-
 class PGVectorDB:
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -24,7 +22,7 @@ class PGVectorDB:
         )
         return resp.data[0].embedding
 
-    def ingest(self, text: str) -> None:
+    def ingest_text(self, text: str) -> None:
         emb = self.embed(text)
         conn = psycopg2.connect(**self.conn_params)
         cur = conn.cursor()
@@ -47,6 +45,25 @@ class PGVectorDB:
             LIMIT %s
             """,
             (qvec, top_k)
+        )
+        rows = cur.fetchall()
+        cur.close(); conn.close()
+        return rows
+
+    def hybrid_query(self, q: str, top_k: int = 3) -> List[Tuple[str, float, float]]:
+        qvec = self.embed(q)
+        conn = psycopg2.connect(**self.conn_params)
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT content,
+                (embedding <#> %s::vector) AS distance,
+                ts_rank_cd(tsv, plainto_tsquery(%s)) AS keyword_score
+            FROM documents
+            ORDER BY (embedding <#> %s::vector) + (1 - COALESCE(ts_rank_cd(tsv, plainto_tsquery(%s)), 0)) ASC
+            LIMIT %s
+            """,
+            (qvec, q, qvec, q, top_k)
         )
         rows = cur.fetchall()
         cur.close(); conn.close()

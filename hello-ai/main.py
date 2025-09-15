@@ -11,7 +11,8 @@ from openai import APIConnectionError, APITimeoutError, RateLimitError, BadReque
 from db.pgvector_db import PGVectorDB
 from fastapi.responses import StreamingResponse
 from fastapi.responses import JSONResponse
-
+from fastapi import UploadFile, File
+from db.ingest import ingest_file
 from fastapi.middleware.cors import CORSMiddleware
 # Load environment variables from .env file
 load_dotenv()
@@ -66,15 +67,23 @@ def root() -> dict:
 class IngestRequest(BaseModel):
     text: str
 
-@app.post("/api/ingest")
-def ingest_doc(req: IngestRequest):
-    db.ingest(req.text)
-    return {"status": "ok", "message": "Document ingested"}
+@app.post("/api/ingest_text")
+def ingest_text(req: IngestRequest):
+    db.ingest_text(req.text)
+    return {"status": "ok", "message": "Text ingested"}
+
+@app.post("/api/ingest_file")
+async def ingest_file_endpoint(file: UploadFile = File(...)):
+    try:
+        chunks = await ingest_file(file, db)
+        return {"status": "ok", "chunks_ingested": chunks}
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
 
 @app.get("/api/qa")
 def qa(query: str = Query(..., min_length=2)):
     # 1. Retrieve from DB
-    rows = db.query(query, top_k=3)
+    rows = db.hybrid_query(query, top_k=3)
     context = "\n".join([r[0] for r in rows])
 
     # 2. Ask GPT
@@ -89,10 +98,10 @@ def qa(query: str = Query(..., min_length=2)):
     answer = resp.choices[0].message.content
 
     return JSONResponse({
-        "query": query,
-        "answer": answer,
-        "context_used": rows,
-        "latency_ms": int((time.time() - start) * 1000)
+    "query": query,
+    "answer": answer,
+    "context_used": [{"text": r[0], "distance": r[1], "keyword_score": r[2]} for r in rows],
+    "latency_ms": int((time.time() - start) * 1000)
     })
 
 
