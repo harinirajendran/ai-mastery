@@ -10,6 +10,9 @@ class Reranker:
 
     def rerank(self, query: str, passages: List[str], top_k: int = 5) -> List[Tuple[str, float]]:
         pairs = [(query, passage) for passage in passages]
+        print("Pairs:", pairs)
+        if len(pairs) == 0:
+            return []
         inputs = self.tokenizer.batch_encode_plus(
             pairs, padding=True, truncation=True, return_tensors="pt"
         )

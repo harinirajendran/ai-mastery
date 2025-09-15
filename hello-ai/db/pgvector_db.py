@@ -8,7 +8,7 @@ class PGVectorDB:
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.conn_params = dict(
-            host=os.getenv("PG_HOST", "db.jwhlkfjbhjufjsajcfmt.supabase.co"),
+            host=os.getenv("PG_HOST", "localhost"),
             port=os.getenv("PG_PORT", "5432"),
             user=os.getenv("PG_USER", "postgres"),
             password=os.getenv("PG_PASSWORD", "password"),
