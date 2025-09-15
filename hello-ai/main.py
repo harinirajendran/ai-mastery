@@ -14,12 +14,14 @@ from fastapi.responses import JSONResponse
 from fastapi import UploadFile, File
 from db.ingest import ingest_file
 from fastapi.middleware.cors import CORSMiddleware
+from app.reranker import Reranker
 # Load environment variables from .env file
 load_dotenv()
 
 app = FastAPI(title="hello-ai", version="0.1.0")
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 db = PGVectorDB()
+reranker = Reranker()
 
 # ----- logging setup -----
 logger = logging.getLogger("app")
@@ -82,9 +84,13 @@ async def ingest_file_endpoint(file: UploadFile = File(...)):
 
 @app.get("/api/qa")
 def qa(query: str = Query(..., min_length=2)):
-    # 1. Retrieve from DB
-    rows = db.hybrid_query(query, top_k=3)
-    context = "\n".join([r[0] for r in rows])
+    # Initial semantic retrieval
+    rows = db.hybrid_query(query, top_k=15)
+    chunks = [r[0] for r in rows]
+
+    # Rerank results
+    reranked = reranker.rerank(query, chunks, top_k=3)
+    context = "\n".join([r[0] for r in reranked])
 
     # 2. Ask GPT
     start = time.time()

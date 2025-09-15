@@ -10,3 +10,8 @@ tiktoken
 langchain
 PyPDF2
 python-multipart
+torch
+torchvision
+torchaudio
+transformers
+accelerate

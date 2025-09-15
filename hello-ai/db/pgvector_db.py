@@ -57,12 +57,12 @@ class PGVectorDB:
         cur.execute(
             """
             SELECT content,
-                (embedding <#> %s::vector) AS distance,
-                ts_rank_cd(tsv, plainto_tsquery(%s)) AS keyword_score
-            FROM documents
-            ORDER BY (embedding <#> %s::vector) + (1 - COALESCE(ts_rank_cd(tsv, plainto_tsquery(%s)), 0)) ASC
-            LIMIT %s
-            """,
+               (embedding <#> %s::vector) AS distance,
+               similarity(content, %s) AS keyword_score
+                FROM documents
+                ORDER BY (embedding <#> %s::vector) + (1 - similarity(content, %s))
+                LIMIT %s
+                """,
             (qvec, q, qvec, q, top_k)
         )
         rows = cur.fetchall()
